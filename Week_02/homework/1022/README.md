@@ -7,7 +7,7 @@
 3. 只适用于单核CPU
 
 ### ParallelGC并行GC
-1. 在年轻代使用 标记-复制（mark-copy），在老年代使用 标记-清除-整理（mark-sweepcompact）
+1. 在年轻代使用 标记-复制（mark-copy），在老年代使用 标记-清除-整理（mark-sweep compact）
 2. GC时都会触发STW
 3. GC时，所有CPU内核都在并行清理垃圾，所以总暂停时间更短，在两次GC间隔时期，没有GC线程在运行，不会消耗任何系统资源
 
@@ -44,7 +44,7 @@
         > 所有的 Old 区拼在一起那就是老年代
 3. 处理步骤
     1. 年轻代模式转移暂停（Evacuation Pause）
-        1. 开始G1处于初始fullyyoung模式
+        1. 开始G1处于初始fully young模式
         2. 年轻代空间用满后，应用线程会被暂停，存活对象被拷贝到存活区
             > 若无存活区，则任意选择一部分空闲的内存块作为存活区，拷贝的过程称为转移（Evacuation)
     2. 并发标记（Concurrent Marking） 与 CMS 类似
