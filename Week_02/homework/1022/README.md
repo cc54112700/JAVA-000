@@ -1,6 +1,6 @@
-#学习笔记
+# 学习笔记
 
-##GC总结
+## GC总结
 ### SerialGC串行GC
 1. 串行 GC 对年轻代使用 mark-copy（标记-复制），对老年代使用 mark-sweep-compact（标记-清除-整理）
 2. 不能并行处理，GC时会STW
@@ -17,7 +17,7 @@
 * Old区比利过高，发生FullGC, 清理掉Young区和Old区里不活跃的对象；
 
 ### ConcMarkSweepGC
-1. 对年轻代采用并行STW方式的 mark-copy (标记-复制)，对老年代主要使用并发 marksweep (标记-清除)
+1. 对年轻代采用并行STW方式的 mark-copy (标记-复制)，对老年代主要使用并发 mark-sweep (标记-清除)
 2. 默认情况下，CMS 使用的并发线程数等于 CPU 核心数的 1/4
 3. 调优目标是降低GC停顿导致的系统延迟，推荐使用CMSGC
 4. 6个阶段
@@ -61,6 +61,17 @@
     3. 转移暂停: 混合模式（Evacuation Pause (mixed)）
         > 不只清理年轻代，还将一部分老年代区域也加入到 回收集 中; 混合模式的转移暂停不一定紧跟并发标记阶段, 其中很可能会存在多次 young 模式的转移暂停
 4. 注意事项
+    1. 并发模式失败
+        > G1 启动标记周期，但在 Mix GC 之前，老年代就被填满，这时候 G1 会放弃标记周期。解决办法：增加堆大小， 或者调整周期（例如增加线程数-XX：ConcGCThreads 等）。
+    2. 晋升失败
+        > 没有足够的内存供存活对象或晋升对象使用，由此触发了 Full GC(to-space exhausted/to-space overflow）。
+          解决办法：
+          a) 增加 –XX：G1ReservePercent 选项的值（并相应增加总的堆大小）增加预留内存量。
+          b) 通过减少 –XX：InitiatingHeapOccupancyPercent 提前启动标记周期。
+          c) 也可以通过增加 –XX：ConcGCThreads 选项的值来增加并行标记线程的数目。
+    3. 巨型对象分配失败
+        > 当巨型对象找不到合适的空间进行分配时，就会启动 Full GC，来释放空间。
+          解决办法：增加内存或者增大 -XX：G1HeapRegionSize
 
 ### 对比总结
 * 串行GC：适合单CPU的Client模式，响应速度优先
@@ -68,8 +79,8 @@
 * CMS GC和G1 GC：响应速度优先，适合Web服务使用 
 
 
-#1022作业：
-##1、使用 GCLogAnalysis.java 自己演练一遍串行/并行/CMS/G1的案例。
+# 1022作业：
+## 1、使用 GCLogAnalysis.java 自己演练一遍串行/并行/CMS/G1的案例。
 
 ```
 java -XX:+UseSerialGC -Xms128m -Xmx128m -XX:+PrintGCDetails -XX:+PrintGCDateStamps GCLogAnalysis
@@ -91,9 +102,9 @@ java -XX:+UseG1GC -Xms512m -Xmx512m -XX:+PrintGC -XX:+PrintGCDateStamps GCLogAna
 | ConcMarkSweepGC |    10092    |  10446  | 9617 | 9976| 10329 |
 | G1GC        |    8520    |  9917  | 8853 | 9106 | 8926 | 
 
-####生成对象次数随机性较大  仅供参考 
+### 生成对象次数随机性较大  仅供参考 
 
-##2.使用SuperBenchmarker压测 几种不同启动方式下的gateway-server：
+## 2.使用SuperBenchmarker压测 几种不同启动方式下的gateway-server：
 * 结论数据并不明显 感觉不能代表什么
 ```
 java -jar -XX:+UseSerialGC -Xms256m -Xmx256m gateway-server-0.0.1-SNAPSHOT.jar 
