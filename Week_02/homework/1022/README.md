@@ -80,7 +80,7 @@
 
 
 # 1022作业：
-## 1、使用 GCLogAnalysis.java 自己演练一遍串行/并行/CMS/G1的案例。
+## 1. 使用 GCLogAnalysis.java 自己演练一遍串行/并行/CMS/G1的案例。
 
 ```
 java -XX:+UseSerialGC -Xms128m -Xmx128m -XX:+PrintGCDetails -XX:+PrintGCDateStamps GCLogAnalysis
@@ -104,7 +104,7 @@ java -XX:+UseG1GC -Xms512m -Xmx512m -XX:+PrintGC -XX:+PrintGCDateStamps GCLogAna
 
 ### 生成对象次数随机性较大  仅供参考 
 
-## 2.使用SuperBenchmarker压测 几种不同启动方式下的gateway-server：
+## 2. 使用SuperBenchmarker压测 几种不同启动方式下的gateway-server：
 * 结论数据并不明显 感觉不能代表什么
 ```
 java -jar -XX:+UseSerialGC -Xms256m -Xmx256m gateway-server-0.0.1-SNAPSHOT.jar 
