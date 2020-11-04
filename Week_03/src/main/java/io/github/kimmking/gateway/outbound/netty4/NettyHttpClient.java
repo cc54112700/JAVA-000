@@ -129,8 +129,9 @@ public class NettyHttpClient {
         }
     }
 
-    public static void main(String[] args) throws Exception {
-        NettyHttpClient client = new NettyHttpClient();
-        client.connect("127.0.0.1", 8888);
-    }
+    // 自启动方法
+//    public static void main(String[] args) throws Exception {
+//        NettyHttpClient client = new NettyHttpClient();
+//        client.connect("127.0.0.1", 8888);
+//    }
 }

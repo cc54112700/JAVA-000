@@ -1,6 +1,8 @@
 package io.github.kimmking.gateway.inbound;
 
+import io.github.kimmking.gateway.filter.NettyHttpRequestFilter;
 import io.github.kimmking.gateway.outbound.netty4.NettyHttpClientOutboundHandler;
+import io.github.kimmking.gateway.router.NettyHttpRouter;
 import io.github.kimmking.gateway.utils.ByteBufToBytes;
 import io.github.kimmking.gateway.outbound.okhttp.OkhttpOutboundHandler;
 import io.netty.buffer.ByteBuf;
@@ -13,6 +15,9 @@ import io.netty.util.CharsetUtil;
 import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Arrays;
+import java.util.List;
 
 import static io.netty.handler.codec.http.HttpHeaderNames.*;
 import static io.netty.handler.codec.http.HttpHeaderValues.KEEP_ALIVE;
@@ -31,11 +36,17 @@ public class HttpInboundHandler extends ChannelInboundHandlerAdapter {
 //    private OkhttpOutboundHandler handler;
     // 整合 HttpClient
 //    private HttpClientOutboundHandler handler;
-
     // 整合 netty client
     private NettyHttpClientOutboundHandler handler;
 
+
+    private NettyHttpRequestFilter filter = null;
+
 //    private HttpOutboundHandler handler;
+
+    // 处理路由 暂时写在这里 后期优化到开始程序
+    private static List<String> endpoints = Arrays.asList("http://localhost:8288","http://localhost:8288","http://localhost:8288");
+
 
     public HttpInboundHandler(String proxyServer) {
         this.proxyServer = proxyServer;
@@ -43,7 +54,10 @@ public class HttpInboundHandler extends ChannelInboundHandlerAdapter {
 //        handler = new HttpClientOutboundHandler(this.proxyServer);
 //        handler = new OkhttpOutboundHandler(this.proxyServer);
 
-        handler = new NettyHttpClientOutboundHandler(this.proxyServer);
+
+//        handler = new NettyHttpClientOutboundHandler(this.proxyServer);
+        // 处理路由 暂时写在这里 后期优化到开始程序
+        handler = new NettyHttpClientOutboundHandler(new NettyHttpRouter().route(endpoints));
     }
     
     @Override
@@ -57,49 +71,23 @@ public class HttpInboundHandler extends ChannelInboundHandlerAdapter {
 
             // 整合 Okhttp HttpClient 都是浏览器直接访问服务端
             FullHttpRequest fullRequest = (FullHttpRequest) msg;
+
+            // 处理filter
+            if (null == filter) {
+                filter = new NettyHttpRequestFilter();
+            }
+            filter.filter(fullRequest, ctx);
+
             handler.handle(fullRequest, ctx);
-
-            // 客户端访问 两种方法
-            // 1. 直接回写给客户端相应
-//            handlerSimple(msg, ctx);
-
-            // 2.客户端以http访问
-//            if (msg instanceof HttpRequest) {
-//                HttpRequest request = (HttpRequest) msg;
-//                if (HttpUtil.isContentLengthSet(request)) {
-//                    reader = new ByteBufToBytes(
-//                            (int) HttpUtil.getContentLength(request));
-//                }
-//            }
-//
-//            if (msg instanceof HttpContent) {
-//                HttpContent httpContent = (HttpContent) msg;
-//                ByteBuf content = httpContent.content();
-//                reader.reading(content);
-//                content.release();
-//                if (reader.isEnd()) {
-//                    String resultStr = new String(reader.readFull());
-//                    System.out.println("Client said:" + resultStr);
-//                    FullHttpResponse response = new DefaultFullHttpResponse(
-//                            HTTP_1_1, OK, Unpooled.wrappedBuffer("I am ok"
-//                            .getBytes()));
-//                    response.headers().set(CONTENT_TYPE, "text/plain");
-//                    response.headers().set(CONTENT_LENGTH,
-//                            response.content().readableBytes());
-//                    response.headers().set(CONNECTION, HttpHeaderValues.KEEP_ALIVE);
-//                    ctx.write(response);
-//                    ctx.flush();
-//                }
-//            }
-
         } catch(Exception e) {
             e.printStackTrace();
         } finally {
             // io.netty.util.IllegalReferenceCountException: refCnt: 0, decrement: 1
-//            ReferenceCountUtil.release(msg);
+            ReferenceCountUtil.release(msg);
         }
     }
 
+    // 1. 直接回写给客户端相应
     private void handlerSimple(Object msg, ChannelHandlerContext ctx) {
 
         ByteBuf bb = (ByteBuf)msg;
