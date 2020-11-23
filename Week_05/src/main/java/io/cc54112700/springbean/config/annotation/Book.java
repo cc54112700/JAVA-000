@@ -2,7 +2,6 @@ package io.cc54112700.springbean.config.annotation;
 
 import org.springframework.stereotype.Component;
 
-
 @Component
 public class Book {
 
