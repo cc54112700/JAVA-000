@@ -1,0 +1,10 @@
+{
+  "properties": [
+    {
+      "name": "i.student.enabled",
+      "type": "java.lang.Boolean",
+      "description": "for study spring boot diy starter",
+      "defaultValue": true
+    }
+  ]
+}
